@@ -1,116 +1,81 @@
 /**
  * GameBoardModel Class
  */
-var GameBoardModel = new function (gameDataSet) {
+var GameBoardModel = function (gameDataSet) {
+	this.SPEED = 1800;
 	
-	// Constante que determina la velocidad en la que se reproduce la partida.
-	// NOTA: Solamente debe ser alterada utilizando el multiplicador de velocidad.
-	var SPEED = 6000;
-	
-	var states = this.states = {
-		PLAY: "play",
-		PAUSE: "pause"
+	this.states = {
+		PLAYING: "playing",
+		PAUSED: "paused"
 	};
 
-	var _gameDataSet = gameDataSet;
-	var _curHand = 0;
-	var _curMove = 0;
-	var _state = states.PAUSE;
-	var _speedMultiplier = 1;
-
-	this.getCurrentMove = function() {
-		return _curMove;
-	}
+	this._gameDataSet = gameDataSet;
+	this._curMove = 0;
+	this._state = this.states.PAUSED;
+	this._speedMultiplier = 1;
+	
+	var _this = this;
+	
+	// Crea los eventos necesarios
+	this.update = new Event(this);
+	
+	this.timerTick = function() {
+		var move = _this._curMove + 1;
+		_this.setMove(move);
 		
-	this.getCurrentHand = function() {
-		return _curHand;
-	}
+		// TO-DO: Chequear con la cantidad total de jugadas
+		if (move >= 100)
+			_this.setState(_this.states.PAUSED);
+	};
 	
-	this.getState = function() {
-		return _state;
-	}
+	this._timer = new Timer(this.SPEED * this._speedMultiplier, this.timerTick);
+};
+
+GameBoardModel.prototype = {
+	getCurrentMove: function() {
+		return this._curMove;
+	},
+		
+	getState: function() {
+		return this._state;
+	},
 	
-	this.getSpeed = function() {
-		return SPEED * _speedMultiplier;
-	}
+	getSpeedMultiplier: function() {
+		return this._speedMultiplier;
+	},
 	
-	this.setSpeedMultiplier = function(multiplier) {
-		_speedMultiplier = multiplier;
-	}
+	setState: function(state) {
+		if (this._state != state) {
+			this._state = state;
+			if (this._state == this.states.PLAYING) {
+				
+				// TO-DO: Chequear con la cantidad total de jugadas
+				if (this._curMove >= 100)
+					this._curMove = 0;
+				
+				this._timer.start();
+			} else
+				this._timer.stop();
+			this.update.notify();
+		}
+	},
+	
+	setMove: function(num) {
+		// TO-DO: Chequear con la cantidad total de jugadas
+		if (this._curMove != num && (num >= 0 && num <= 100)) {
+			this._curMove = num;
+			this.update.notify();
+		}		
+	},
+	
+	setSpeedMultiplier: function(multiplier) {
+		this._speedMultiplier = multiplier;
+	},
 	
 	/*
 	 * Retorna una jugada por numero
 	 */
-	this.getMove = function(num) {
-		
-	}
-	
-	/*
-	 * Retorna una mano por numero
-	 */
-	this.getHand = function(num) {
-		
-	}
-	
-	/*
-	 * Establece el estado del reproductor en play
-	 */
-	this.play = function() {
-		_state = states.PLAY;
-	}
-	
-	/*
-	 * Establece el estado del reproductor en pausa
-	 */
-	this.pause = function() {
-		_state = states.PAUSE;
-	}
-	
-	/*
-	 * Avanza a la siguiente jugada
-	 */
-	this.nextMove = function() {
-		// TO-DO: Chequear con la cantidad total de jugadas
-		_curMove++;
-	}
-	
-	/*
-	 * Retrocede a la jugada anterior
-	 */
-	this.prevMove = function() {
-		if (--_curMove < 0)
-			_curMove = 0;
-	}
-	
-	/*
-	 * Situa en una jugada por numero
-	 */
-	this.seekMove = function(num) {
-		// TO-DO: Chequear que el numero de jugada este dentro del rango permitido
-		_curMove = num;
-	}
-	
-	/* 
-	 * Avanza a la siguiente mano
-	 */
-	this.nextHand = function() {
-		// TO-DO: Chequear con la cantidad total de manos
-		_curHand++;
-	}
-	
-	/*
-	 * Retrocede a la mano anterior
-	 */
-	this.prevHand = function() {
-		if (--_curHand < 0)
-			_curHand = 0;
-	}
-	
-	/*
-	 * Situa en una mano por numero
-	 */
-	this.seekHand = function(num) {
-		// TO-DO: Chequear que el numero de mano este dentro del rango permitido
-		_curHand = num;
-	}
-}
+	getMove: function(num) {
+
+	},
+};
